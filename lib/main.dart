@@ -77,7 +77,7 @@ class _myHomePageState extends State<HomePage>{
       body: Column(
         children: [
           Padding(
-            padding: null,
+            padding: EdgeInsets.all(5),
             child: refresh,
           ),
           FloatingActionButton(
