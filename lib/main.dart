@@ -43,74 +43,137 @@ class HomePage extends StatefulWidget{
 
 class _myHomePageState extends State<HomePage>{
   List<Map> expenseList = [];
-  List<Row> expenseRowList = [];
+  List<Container> expenseTileList = [];
 
-  Widget refresh, mainBody;
+  Widget refresh, mainBody, progressWidget;
   bool loaded = false;
   @override
   Widget build(BuildContext context) {
+    print("Building");
+    progressWidget = Container();
     mainBody = Container(
         child: Text("Empty"),
       alignment: Alignment.center,
     );
-    refresh = Tooltip(
-      message: "Refresh",
-      child: FlatButton(
-        child: Icon(Icons.refresh),
-      ),
+    refresh = IconButton(
+        icon: Icon(Icons.refresh),
+        onPressed: (){
+          setState(() {
+            loaded = false;
+          });
+        },
     );
     if(!loaded){
-      refresh = CircularProgressIndicator();
+      print("Not loaded");
+
       refreshList().then((value) {
+        print("refresh end");
         setState((){
           loaded = true;
+          print("Load finish setstate");
         });
       });
     }
-    if(expenseList.isNotEmpty){
-      mainBody = Container(child: Text("Not Empty"));
-    }
+    //if(expenseList.isNotEmpty){
+      mainBody = ListView.builder(
+        itemBuilder: (BuildContext buildContext, int index){
+          return expenseTileList[index];
+        },
+        shrinkWrap: true,
+        itemCount: expenseTileList.length,
+        physics: NeverScrollableScrollPhysics(),
+      );
+   // }
+
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(5),
-            child: refresh,
-          ),
-          FloatingActionButton(
-            tooltip: "New Expense",
-            child: Icon(Icons.add),
-            onPressed: (){
-              print("Button Pressed");
-            },
-          ),
-          mainBody
+        actions: [
+          refresh
         ],
-      )
+      ),
+      body: SingleChildScrollView(
+        physics: ScrollPhysics(),
+        child: Column(
+          children: [
+            progressWidget,
+            mainBody
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: "New Expense",
+        child: Icon(Icons.add),
+        onPressed: (){
+          print("Button Pressed");
+        },
+      ),
     );
   }
 
   Future<void> refreshList() async {
+    progressWidget = LinearProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Colors.redAccent),);
     print("Calling refresh");
     ExpenseMain.count = Sqflite.firstIntValue(await database.rawQuery("Select count(*) from expensemain"));
     print("Count: " + ExpenseMain.count.toString());
     expenseList.clear();
-    expenseList = await database.rawQuery("Select * from expensemain order by id desc");
+    expenseTileList.clear();
+    expenseList.addAll(await database.rawQuery("Select * from expensemain order by id desc"));
 
     print("Result Rows----------------------------------------------");
     for(Map m in expenseList){
       print(m.toString());
-      //expenseRowList.add(listToRow(m));
+      //expenseTileList.add(listToTile(m));
     }
+    expenseTileList.add(listToTile(Map<String, dynamic>()));
+    expenseTileList.add(listToTile(Map<String, dynamic>()));
+    expenseTileList.add(listToTile(Map<String, dynamic>()));
+    expenseTileList.add(listToTile(Map<String, dynamic>()));
+    await Future.delayed(Duration(seconds: 2));
   }
 
-  Row listToRow(Map<String, dynamic> map){
-    Row r;
-    //Implementation
+  Container listToTile(Map<String, dynamic> map){
+    Container container = Container(
+      decoration: BoxDecoration(border: Border.all(color: Colors.red)),
+      padding: EdgeInsets.all(10),
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(border: Border.all(color: Colors.green)),
+            alignment: Alignment.topRight,
+            padding: EdgeInsets.all(5),
+            child: Text("Date"),
+          ),
+          Container(
+              child: Row(
+                children: [
+                  Container(
+                    child: Expanded(
+                      child: Text("Title Title", overflow: TextOverflow.ellipsis, softWrap: false,),
+                    )
+                  ),
 
-    return r;
+                  Container(
+                        decoration: BoxDecoration(border: Border.all(color: Colors.black)),
+                        alignment: Alignment.center,
+                        child: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: (){
+                            print("Pressed Delete");
+                          },
+                        ),
+                      )
+
+
+                ],
+              )
+          )
+        ],
+      )
+    );
+
+    return container;
   }
 }
