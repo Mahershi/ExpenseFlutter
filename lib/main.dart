@@ -3,6 +3,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter/widgets.dart';
 import 'expensemain.dart';
+import 'newexpense.dart';
+import 'deleteconfirmdialog.dart';
 
 Database database;
 
@@ -20,7 +22,6 @@ void main() async{
 
   ExpenseMain.count = Sqflite.firstIntValue(await database.rawQuery("Select count(*) from expensemain"));
   print("Count: " + ExpenseMain.count.toString());
-
   runApp(MyApp());
 }
 
@@ -42,6 +43,7 @@ class HomePage extends StatefulWidget{
 }
 
 class _myHomePageState extends State<HomePage>{
+  BuildContext context;
   List<Map> expenseList = [];
   List<Container> expenseTileList = [];
 
@@ -49,6 +51,7 @@ class _myHomePageState extends State<HomePage>{
   bool loaded = false;
   @override
   Widget build(BuildContext context) {
+    this.context = context;
     print("Building");
     progressWidget = Container();
     mainBody = Container(
@@ -74,7 +77,7 @@ class _myHomePageState extends State<HomePage>{
         });
       });
     }
-    //if(expenseList.isNotEmpty){
+    if(expenseList.isNotEmpty){
       mainBody = ListView.builder(
         itemBuilder: (BuildContext buildContext, int index){
           return expenseTileList[index];
@@ -83,9 +86,7 @@ class _myHomePageState extends State<HomePage>{
         itemCount: expenseTileList.length,
         physics: NeverScrollableScrollPhysics(),
       );
-   // }
-
-
+   }
 
     return Scaffold(
       appBar: AppBar(
@@ -106,8 +107,20 @@ class _myHomePageState extends State<HomePage>{
       floatingActionButton: FloatingActionButton(
         tooltip: "New Expense",
         child: Icon(Icons.add),
-        onPressed: (){
-          print("Button Pressed");
+        onPressed: () async{
+          print("Add new");
+          await showDialog(context: context, builder: (BuildContext buildContext){
+            return NewExpenseDialog(database: database,);
+          }).then((value){
+            print("Then called on dialog box");
+            if(value){
+              print("Refreshing");
+              setState(() {
+                loaded = false;
+              });
+            }
+
+          });
         },
       ),
     );
@@ -123,54 +136,84 @@ class _myHomePageState extends State<HomePage>{
     expenseList.addAll(await database.rawQuery("Select * from expensemain order by id desc"));
 
     print("Result Rows----------------------------------------------");
+    print(expenseList.length.toString());
     for(Map m in expenseList){
       print(m.toString());
-      //expenseTileList.add(listToTile(m));
+      expenseTileList.add(listToTile(m));
     }
-    expenseTileList.add(listToTile(Map<String, dynamic>()));
-    expenseTileList.add(listToTile(Map<String, dynamic>()));
-    expenseTileList.add(listToTile(Map<String, dynamic>()));
-    expenseTileList.add(listToTile(Map<String, dynamic>()));
-    await Future.delayed(Duration(seconds: 2));
+    //expenseTileList.add(listToTile(Map<String, dynamic>()));
+    //expenseTileList.add(listToTile(Map<String, dynamic>()));
+   // expenseTileList.add(listToTile(Map<String, dynamic>()));
+    //expenseTileList.add(listToTile(Map<String, dynamic>()));
+    //await Future.delayed(Duration(seconds: 2));
   }
 
   Container listToTile(Map<String, dynamic> map){
     Container container = Container(
-      decoration: BoxDecoration(border: Border.all(color: Colors.red)),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey))),
       padding: EdgeInsets.all(10),
-      child: Column(
-        children: [
-          Container(
-            decoration: BoxDecoration(border: Border.all(color: Colors.green)),
-            alignment: Alignment.topRight,
-            padding: EdgeInsets.all(5),
-            child: Text("Date"),
-          ),
-          Container(
-              child: Row(
-                children: [
-                  Container(
-                    child: Expanded(
-                      child: Text("Title Title", overflow: TextOverflow.ellipsis, softWrap: false,),
+      child: InkWell(
+        onTap: (){
+          print("Tapped");
+        },
+        child: Column(
+          children: [
+            Container(
+              alignment: Alignment.topRight,
+              padding: EdgeInsets.fromLTRB(0, 5, 0, 10),
+              child: Text(map['date'].toString(), style: TextStyle(fontWeight: FontWeight.bold),),
+            ),
+            Container(
+                child: Row(
+                  children: [
+                    Container(
+                        child: Expanded(
+                          child: Text(map['title'], overflow: TextOverflow.ellipsis, softWrap: false,),
+                        )
+                    ),
+
+                    Container(
+                      decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+                      alignment: Alignment.center,
+                      child: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () async{
+                          print("Pressed Delete");
+                          await showDialog(context: context, builder: (BuildContext buildContext){
+                            return DeleteConfirmDialog(expenseTitle: map['title'].toString());
+                          }).then((value) async{
+                            if(value){
+                              print("Deleting...");
+
+                              await database.delete('expensemain', where: 'id = ?', whereArgs: [map['id']]);
+                              await database.rawQuery("drzop table table" + map['id'].toString());
+
+                              print("\n\nTable list");
+                              List<Map> result = await database.rawQuery("Select name from sqlite_master where type='table'");
+                              for(Map m in result){
+                                print(m.toString());
+                              }
+
+                              print("\n\nExpense main content");
+                              result = await database.rawQuery("Select * from expensemain order by id desc");
+                              for(Map m in result){
+                                print(m.toString());
+                              }
+                              setState(() {
+                                loaded = false;
+                              });
+                            }
+                          });
+                        },
+                      ),
                     )
-                  ),
-
-                  Container(
-                        decoration: BoxDecoration(border: Border.all(color: Colors.black)),
-                        alignment: Alignment.center,
-                        child: IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: (){
-                            print("Pressed Delete");
-                          },
-                        ),
-                      )
 
 
-                ],
-              )
-          )
-        ],
+                  ],
+                )
+            )
+          ],
+        )
       )
     );
 
