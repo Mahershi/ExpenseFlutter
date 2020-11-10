@@ -22,7 +22,6 @@ class NewExpenseDialog extends StatelessWidget{
               children: [
                 Container(
                   child: TextFormField(
-
                     controller: titlecontroller,
                     decoration: InputDecoration(
                       hintText: "Expense Title"

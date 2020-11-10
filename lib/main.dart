@@ -79,6 +79,7 @@ class _myHomePageState extends State<HomePage>{
     }
     if(expenseList.isNotEmpty){
       mainBody = ListView.builder(
+        padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
         itemBuilder: (BuildContext buildContext, int index){
           return expenseTileList[index];
         },
@@ -150,68 +151,73 @@ class _myHomePageState extends State<HomePage>{
 
   Container listToTile(Map<String, dynamic> map){
     Container container = Container(
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey))),
-      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey, width: 0.5))),
+      padding: EdgeInsets.fromLTRB(9, 14, 5, 5),
       child: InkWell(
         onTap: (){
           print("Tapped");
         },
-        child: Column(
+        child: Row(
           children: [
-            Container(
-              alignment: Alignment.topRight,
-              padding: EdgeInsets.fromLTRB(0, 5, 0, 10),
-              child: Text(map['date'].toString(), style: TextStyle(fontWeight: FontWeight.bold),),
+            Expanded(
+              child: Container(
+                child: Column(
+                    children: [
+                      Container(
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          map['title'],
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: false,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20
+                          ),
+                        ),
+                      ),
+                      Container(
+                        alignment: Alignment.bottomLeft,
+                        padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
+                        child: Text(map['date'].toString(), style: TextStyle(fontSize: 11),),
+                      ),
+                    ]
+                )
+              )
             ),
             Container(
-                child: Row(
-                  children: [
-                    Container(
-                        child: Expanded(
-                          child: Text(map['title'], overflow: TextOverflow.ellipsis, softWrap: false,),
-                        )
-                    ),
+              decoration: BoxDecoration(border: Border.all(color: Colors.grey, width: 0.5)),
+              child: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () async{
+                  print("Pressed Delete");
+                  await showDialog(context: context, builder: (BuildContext buildContext){
+                    return DeleteConfirmDialog(expenseTitle: map['title'].toString());
+                  }).then((value) async{
+                    if(value){
+                      print("Deleting...");
 
-                    Container(
-                      decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
-                      alignment: Alignment.center,
-                      child: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () async{
-                          print("Pressed Delete");
-                          await showDialog(context: context, builder: (BuildContext buildContext){
-                            return DeleteConfirmDialog(expenseTitle: map['title'].toString());
-                          }).then((value) async{
-                            if(value){
-                              print("Deleting...");
+                      await database.delete('expensemain', where: 'id = ?', whereArgs: [map['id']]);
+                      await database.rawQuery("drzop table table" + map['id'].toString());
 
-                              await database.delete('expensemain', where: 'id = ?', whereArgs: [map['id']]);
-                              await database.rawQuery("drzop table table" + map['id'].toString());
+                      print("\n\nTable list");
+                      List<Map> result = await database.rawQuery("Select name from sqlite_master where type='table'");
+                      for(Map m in result){
+                        print(m.toString());
+                      }
 
-                              print("\n\nTable list");
-                              List<Map> result = await database.rawQuery("Select name from sqlite_master where type='table'");
-                              for(Map m in result){
-                                print(m.toString());
-                              }
-
-                              print("\n\nExpense main content");
-                              result = await database.rawQuery("Select * from expensemain order by id desc");
-                              for(Map m in result){
-                                print(m.toString());
-                              }
-                              setState(() {
-                                loaded = false;
-                              });
-                            }
-                          });
-                        },
-                      ),
-                    )
-
-
-                  ],
-                )
-            )
+                      print("\n\nExpense main content");
+                      result = await database.rawQuery("Select * from expensemain order by id desc");
+                      for(Map m in result){
+                        print(m.toString());
+                      }
+                      setState(() {
+                        loaded = false;
+                      });
+                    }
+                  });
+                },
+              )
+            ),
           ],
         )
       )
