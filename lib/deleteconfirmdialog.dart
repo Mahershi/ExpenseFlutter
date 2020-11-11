@@ -6,7 +6,7 @@ class DeleteConfirmDialog extends StatelessWidget{
   @override
   Widget build(BuildContext buildContext){
     return AlertDialog(
-      title: Text("Delete " + expenseTitle + "?"),
+      title: Text("Delete \'" + expenseTitle + "\'?"),
       actions: [
         FlatButton(
           child: Text("Affirmative"),

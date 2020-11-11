@@ -1,3 +1,5 @@
+import 'package:expense/expensedetail.dart';
+import 'package:expense/expensemain.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,33 +15,36 @@ class NewExpenseDialog extends StatelessWidget{
     return AlertDialog(
       title: Text("New Expense"),
       content: Builder(builder: (context){
-        return Container(
-          height: MediaQuery.of(context).size.height/6,
-          width: MediaQuery.of(context).size.width/1.5,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Container(
-                  child: TextFormField(
-                    controller: titlecontroller,
-                    decoration: InputDecoration(
-                      hintText: "Expense Title"
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]+"))
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      Container(
+                        child: TextFormField(
+                          controller: titlecontroller,
+                          decoration: InputDecoration(
+                              hintText: "Expense Title"
+                          ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]+"))
+                          ],
+                          validator: (value){
+                            if(value.isEmpty){
+                              return "Enter Title";
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
                     ],
-                    validator: (value){
-                      if(value.isEmpty){
-                        return "Enter Title";
-                      }
-                      return null;
-                    },
                   ),
-                ),
-              ],
-            ),
-          )
+                )
+            )
+          ],
         );
       }),
       actions: [
@@ -60,7 +65,13 @@ class NewExpenseDialog extends StatelessWidget{
               print(tableno);
               String tablename = "table" + tableno.toString();
               print("Tablename: " + tablename);
-              database.insert('expensemain', {'title': title, 'tablename': tablename, 'date': date.toString()});
+
+              var newExpense = ExpenseMain(title, tablename, date.toString());
+
+              newExpense.id = await database.insert('expensemain', newExpense.toMap());
+              print("New Expense: ");
+              newExpense.show();
+
               String query = "create table " + tablename + " (id integer primary key autoincrement, title text, cost integer, ignore integer, date text)";
               await database.execute(query);
               
@@ -74,6 +85,8 @@ class NewExpenseDialog extends StatelessWidget{
                 print(m.toString());
               }
               Navigator.of(context).pop(true);
+             // Navigator.pushNamed(context, ExpenseMain());
+             Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) => new ExpenseDetail(expense: newExpense, database: database,)));
             }else{
               print("Incorredt");
             }

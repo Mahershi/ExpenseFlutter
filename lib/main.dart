@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'expensemain.dart';
 import 'newexpense.dart';
 import 'deleteconfirmdialog.dart';
+import 'expensedetail.dart';
 
 Database database;
 
@@ -32,6 +33,9 @@ class MyApp extends StatelessWidget{
     return MaterialApp(
       home: HomePage(title: title),
       title: title,
+      routes: {
+        'expensedetail': (BuildContext buildContext) => new ExpenseDetail(),
+      },
     );
   }
 }
@@ -110,15 +114,18 @@ class _myHomePageState extends State<HomePage>{
         child: Icon(Icons.add),
         onPressed: () async{
           print("Add new");
-          await showDialog(context: context, builder: (BuildContext buildContext){
+          showDialog(context: context, builder: (BuildContext buildContext){
             return NewExpenseDialog(database: database,);
           }).then((value){
             print("Then called on dialog box");
-            if(value){
+            /*if(value){
               print("Refreshing");
               setState(() {
                 loaded = false;
               });
+            }*/
+            if(value){
+             // Navigator.pushNamed(context, "expensedetail", )
             }
 
           });
@@ -156,6 +163,18 @@ class _myHomePageState extends State<HomePage>{
       child: InkWell(
         onTap: (){
           print("Tapped");
+          Navigator.push(
+              context,
+              new MaterialPageRoute(
+                  builder: (BuildContext buildContext) => new ExpenseDetail(expense: ExpenseMain.fromMap(map), database: database,)
+              )
+          ).then((value){
+            if(value){
+              setState(() {
+                loaded = false;
+              });
+            }
+          });
         },
         child: Row(
           children: [
@@ -190,14 +209,14 @@ class _myHomePageState extends State<HomePage>{
                 icon: Icon(Icons.delete),
                 onPressed: () async{
                   print("Pressed Delete");
-                  await showDialog(context: context, builder: (BuildContext buildContext){
+                  showDialog(context: context, builder: (BuildContext buildContext){
                     return DeleteConfirmDialog(expenseTitle: map['title'].toString());
                   }).then((value) async{
                     if(value){
                       print("Deleting...");
 
                       await database.delete('expensemain', where: 'id = ?', whereArgs: [map['id']]);
-                      await database.rawQuery("drzop table table" + map['id'].toString());
+                      await database.rawQuery("drop table table" + map['id'].toString());
 
                       print("\n\nTable list");
                       List<Map> result = await database.rawQuery("Select name from sqlite_master where type='table'");

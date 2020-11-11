@@ -1,17 +1,19 @@
-import 'package:flutter/cupertino.dart';
 
 class ExpenseMain{
   static int count;
   int id = 0;
   String title;
-  String tablename;
+  String tableName;
+  String date;
+  List<Map<String, dynamic>> costList = [];
 
-  ExpenseMain(this.title, this.tablename);
+  ExpenseMain(this.title, this.tableName, this.date);
 
   ExpenseMain.fromMap(Map<String, dynamic> map){
     this.id = map['id'];
     this.title = map['title'];
-    this.tablename = map['tablename'];
+    this.tableName = map['tablename'];
+    this.date = map['date'];
   }
 
   Map<String, dynamic> toMap(){
@@ -19,13 +21,14 @@ class ExpenseMain{
     if(id!=0)
       map['id'] = id;
     map['title'] = title;
-    map['tablename'] = tablename;
+    map['tablename'] = tableName;
+    map['date'] = date;
 
     return map;
   }
 
 
   void show(){
-    print(id.toString() + " " + title + " " + tablename);
+    print(id.toString() + " " + title + " " + tableName + " " + date);
   }
 }
