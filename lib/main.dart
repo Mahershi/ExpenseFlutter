@@ -22,7 +22,6 @@ void main() async{
   );
 
   ExpenseMain.count = Sqflite.firstIntValue(await database.rawQuery("Select count(*) from expensemain"));
-  print("Count: " + ExpenseMain.count.toString());
   runApp(MyApp());
 }
 
@@ -71,13 +70,9 @@ class _myHomePageState extends State<HomePage>{
         },
     );
     if(!loaded){
-      print("Not loaded");
-
       refreshList().then((value) {
-        print("refresh end");
         setState((){
           loaded = true;
-          print("Load finish setstate");
         });
       });
     }
@@ -117,7 +112,6 @@ class _myHomePageState extends State<HomePage>{
           showDialog(context: context, builder: (BuildContext buildContext){
             return NewExpenseDialog(database: database,);
           }).then((value){
-            print("Then called on dialog box");
             /*if(value){
               print("Refreshing");
               setState(() {
@@ -136,9 +130,7 @@ class _myHomePageState extends State<HomePage>{
 
   Future<void> refreshList() async {
     progressWidget = LinearProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Colors.redAccent),);
-    print("Calling refresh");
     ExpenseMain.count = Sqflite.firstIntValue(await database.rawQuery("Select count(*) from expensemain"));
-    print("Count: " + ExpenseMain.count.toString());
     expenseList.clear();
     expenseTileList.clear();
     expenseList.addAll(await database.rawQuery("Select * from expensemain order by id desc"));
@@ -149,11 +141,6 @@ class _myHomePageState extends State<HomePage>{
       print(m.toString());
       expenseTileList.add(listToTile(m));
     }
-    //expenseTileList.add(listToTile(Map<String, dynamic>()));
-    //expenseTileList.add(listToTile(Map<String, dynamic>()));
-   // expenseTileList.add(listToTile(Map<String, dynamic>()));
-    //expenseTileList.add(listToTile(Map<String, dynamic>()));
-    //await Future.delayed(Duration(seconds: 2));
   }
 
   Container listToTile(Map<String, dynamic> map){

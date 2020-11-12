@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import 'expensemain.dart';
 import 'deleteconfirmdialog.dart';
 import 'editexpensetitle.dart';
+import 'costContainerList.dart';
 
 class ExpenseDetail extends StatefulWidget{
   Database database;
@@ -13,10 +14,14 @@ class ExpenseDetail extends StatefulWidget{
 
 }
 
+
 class _myExpenseDetailState extends State<ExpenseDetail>{
   bool backRefresh = false;
+  CostListView costListView;
   @override
   Widget build(BuildContext context) {
+    print("building detail");
+    costListView = CostListView(expense: widget.expense,);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -87,21 +92,14 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
           IconButton(
             onPressed: (){
               print("Save Expense");
+              widget.expense = costListView.getExpenseObect();
               Navigator.of(context).pop(false);
             },
             icon: Icon(Icons.done)
           ),
         ],
       ),
-      body: Container(
-        child: Column(
-          children: [
-            Text(widget.expense.id.toString()),
-            Text(widget.expense.date),
-            Text(widget.expense.tableName),
-          ],
-        )
-      )
+      body: costListView,
     );
   }
 }
