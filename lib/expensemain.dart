@@ -29,9 +29,21 @@ class ExpenseMain{
     return map;
   }
 
+  Map<String, dynamic> copyCosts(Map<String, dynamic> obj){
+    Map<String, dynamic> cost = Map<String, dynamic>();
+    cost['title'] = obj['title'];
+    cost['id'] = obj['id'];
+    cost['ignore'] = obj['ignore'];
+    cost['amount'] = obj['amount'];
 
+    return cost;
+  }
 
   void show(){
     print(id.toString() + " " + title + " " + tableName + " " + date);
+    print("Costs:\n");
+    for(Map m in costList){
+      print(m.toString());
+    }
   }
 }

@@ -1,5 +1,7 @@
+import 'package:expense/newcost.dart';
 import 'package:flutter/material.dart';
 import 'expensemain.dart';
+import 'confirmback.dart';
 
 class CostListView extends StatefulWidget{
   int total = 0;
@@ -19,9 +21,10 @@ class _myCostListViewState extends State<CostListView>{
     print("Building cost list");
     for(Map current in widget.expense.costList){
       if(current['ignore'] == 0){
-        widget.total += current['amount'];
+        //widget.total += int.parse(current['amount']);
       }
     }
+
     return Column(
       children: [
         Row(
@@ -41,6 +44,32 @@ class _myCostListViewState extends State<CostListView>{
               child: IconButton(
                 icon: Icon(Icons.add_box),
                 iconSize: 30,
+                onPressed: () async{
+                  print("Add new cost");
+                  Map<String, dynamic> newCost = await showDialog(
+                    context: context,
+                    builder: (BuildContext buildContext){
+                      return NewCost();
+                    }
+                  );
+                  if(newCost != null){
+                    print("Cost recv on Prev: " + newCost.toString());
+                    int currentMax;
+                    if(widget.expense.costList.isEmpty)
+                      currentMax = 0;
+                    else
+                      currentMax = widget.expense.costList[0]['id'];
+                    newCost['id'] = currentMax+1;
+                    widget.expense.costList.insert(0, newCost);
+                    widget.expense.show();
+                    setState(() {
+                      widget.total = 0;
+                    });
+                  }else{
+                    print("Null");
+                  }
+
+                },
               )
             )
           ],
@@ -50,7 +79,7 @@ class _myCostListViewState extends State<CostListView>{
             itemBuilder: (BuildContext buildContext, int index){
               return getCostItemsContainerList()[index];
             },
-            itemCount: 3,
+            itemCount: widget.expense.costList.length,
             shrinkWrap: true,
           )
         ),
@@ -87,7 +116,7 @@ class _myCostListViewState extends State<CostListView>{
     );
   }
 
-  List<Container> getCostItemsContainerList(){
+  /*List<Container> getCostItemsContainerList(){
     List<Container> costListContainer = [];
     Container container;
     Icon igIcon;
@@ -153,19 +182,34 @@ class _myCostListViewState extends State<CostListView>{
     }
     print("Size: " + costListContainer.length.toString());
     return costListContainer;
-  }
+  }*/
 
-  /*List<Container> getCostItemsContainerList(){
+  List<Container> getCostItemsContainerList(){
     List<Container> costListContainer = [];
     Container container;
     Icon igIcon;
-
+    Text amount;
     for(int i=0; i<widget.expense.costList.length; i++){
       Map current = widget.expense.costList[i];
       if(current['ignore'] == 1){
         igIcon = Icon(Icons.add, color: Colors.grey,);
+        amount = Text(
+          current['amount'].toString(),
+          style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey
+          ),
+        );
       }else{
         igIcon = Icon(Icons.add_circle_outline, color: Colors.green,);
+        amount = Text(
+          current['amount'].toString(),
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.black,
+            fontWeight: FontWeight.bold
+          ),
+        );
       }
       container = Container(
         padding: EdgeInsets.fromLTRB(0, 10, 0, 5),
@@ -177,6 +221,10 @@ class _myCostListViewState extends State<CostListView>{
                 icon: Icon(Icons.delete),
                 onPressed: (){
                   print("Delete Cost");
+                  widget.expense.costList.removeAt(i);
+                  setState(() {
+                    widget.total = 0;
+                  });
                 },
               ),
             ),
@@ -194,7 +242,7 @@ class _myCostListViewState extends State<CostListView>{
                 child: IconButton(
                   icon: igIcon,
                   onPressed: (){
-                    widget.expense.costList[i]['ignore'] = - widget.expense.costList[i]['ignore'];
+                    widget.expense.costList[i]['ignore'] = 1 - widget.expense.costList[i]['ignore'];
                     print("New Ignore: " + widget.expense.costList[i]['ignore'].toString());
                     setState(() {
                       print("Reset cost list body");
@@ -205,13 +253,7 @@ class _myCostListViewState extends State<CostListView>{
             ),
             Container(
               padding: EdgeInsets.fromLTRB(10, 0, 20, 0),
-              child: Text(
-                current['amount'].toString(),
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold
-                ),
-              ),
+              child: amount,
             )
           ],
         ),
@@ -220,5 +262,5 @@ class _myCostListViewState extends State<CostListView>{
     }
     print("Size: " + costListContainer.length.toString());
     return costListContainer;
-  }*/
+  }
 }

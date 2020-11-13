@@ -22,6 +22,10 @@ void main() async{
   );
 
   ExpenseMain.count = Sqflite.firstIntValue(await database.rawQuery("Select count(*) from expensemain"));
+  List<Map> result = await database.rawQuery("Select * from table1");
+  for(Map m in result){
+    print(m.toString());
+  }
   runApp(MyApp());
 }
 
@@ -49,6 +53,7 @@ class _myHomePageState extends State<HomePage>{
   BuildContext context;
   List<Map> expenseList = [];
   List<Container> expenseTileList = [];
+  List<ExpenseMain> expenses = [];
 
   Widget refresh, mainBody, progressWidget;
   bool loaded = false;
@@ -134,16 +139,25 @@ class _myHomePageState extends State<HomePage>{
     expenseList.clear();
     expenseTileList.clear();
     expenseList.addAll(await database.rawQuery("Select * from expensemain order by id desc"));
-
+    expenses.clear();
     print("Result Rows----------------------------------------------");
     print(expenseList.length.toString());
+    ExpenseMain temp;
     for(Map m in expenseList){
-      print(m.toString());
-      expenseTileList.add(listToTile(m));
+      temp = ExpenseMain.fromMap(m);
+      List<Map> costs = await database.rawQuery("Select * from " + temp.tableName);
+      for(int i=0 ;i<costs.length; i++){
+        temp.costList.add(temp.copyCosts(costs[i]));
+      }
+      temp.costList[0]['amount'] = 900;
+      expenses.add(temp);
+      print(temp.toString());
+      expenseTileList.add(listToTile(temp));
     }
+
   }
 
-  Container listToTile(Map<String, dynamic> map){
+  Container listToTile(ExpenseMain expense){
     Container container = Container(
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey, width: 0.5))),
       padding: EdgeInsets.fromLTRB(9, 14, 5, 5),
@@ -153,7 +167,7 @@ class _myHomePageState extends State<HomePage>{
           Navigator.push(
               context,
               new MaterialPageRoute(
-                  builder: (BuildContext buildContext) => new ExpenseDetail(expense: ExpenseMain.fromMap(map), database: database,)
+                  builder: (BuildContext buildContext) => new ExpenseDetail(expense: expense, database: database,)
               )
           ).then((value){
             if(value){
@@ -172,7 +186,7 @@ class _myHomePageState extends State<HomePage>{
                       Container(
                         alignment: Alignment.topLeft,
                         child: Text(
-                          map['title'],
+                          expense.title,
                           overflow: TextOverflow.ellipsis,
                           softWrap: false,
                           style: TextStyle(
@@ -184,7 +198,7 @@ class _myHomePageState extends State<HomePage>{
                       Container(
                         alignment: Alignment.bottomLeft,
                         padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
-                        child: Text(map['date'].toString(), style: TextStyle(fontSize: 11),),
+                        child: Text(expense.date, style: TextStyle(fontSize: 11),),
                       ),
                     ]
                 )
@@ -197,13 +211,13 @@ class _myHomePageState extends State<HomePage>{
                 onPressed: () async{
                   print("Pressed Delete");
                   showDialog(context: context, builder: (BuildContext buildContext){
-                    return DeleteConfirmDialog(expenseTitle: map['title'].toString());
+                    return DeleteConfirmDialog(expenseTitle: expense.title);
                   }).then((value) async{
                     if(value){
                       print("Deleting...");
 
-                      await database.delete('expensemain', where: 'id = ?', whereArgs: [map['id']]);
-                      await database.rawQuery("drop table table" + map['id'].toString());
+                      await database.delete('expensemain', where: 'id = ?', whereArgs: [expense.id]);
+                      await database.rawQuery("drop table table" + expense.id.toString());
 
                       print("\n\nTable list");
                       List<Map> result = await database.rawQuery("Select name from sqlite_master where type='table'");

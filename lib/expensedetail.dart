@@ -4,6 +4,7 @@ import 'expensemain.dart';
 import 'deleteconfirmdialog.dart';
 import 'editexpensetitle.dart';
 import 'costContainerList.dart';
+import 'confirmback.dart';
 
 class ExpenseDetail extends StatefulWidget{
   Database database;
@@ -26,8 +27,19 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
-          onPressed: (){
-            print("Go Back");
+          onPressed: () async{
+            print("Back");
+            await showDialog(
+              context: context,
+              builder: (BuildContext buildContext){
+                return ConfirmBack();
+              }
+            ).then((value){
+              if(value){
+                widget.expense = costListView.getExpenseObect();
+                saveExpense();
+              }
+            });
             Navigator.of(context).pop(backRefresh);
           },
         ),
@@ -49,21 +61,17 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
         actions: [
           IconButton(
             onPressed: (){
-              print("Edit Title");
               showDialog(
                 context: context,
                 builder: (BuildContext buildContext){
                   return EditExpenseTitle(expense: widget.expense);
                 }
               ).then((value) async {
-                print("Recvd Value: " + value.toString());
                 if(value['title']!=null){
-                  print("Refreshing");
                   widget.expense.title = value['title'];
                   await widget.database.update('expensemain', widget.expense.toMap(), where: 'id = ?', whereArgs: [widget.expense.id]);
                   backRefresh = true;
                   setState(() {
-
                   });
                 }
               });
@@ -72,7 +80,6 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
           ),
           IconButton(
               onPressed: (){
-                print("Delete Expense");
                 showDialog(
                   context: context,
                   builder: (BuildContext buildContext){
@@ -80,7 +87,6 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
                   }
                 ).then((value) async{
                   if(value){
-                    print("Deleting...");
                     await widget.database.delete('expensemain', where: 'id = ?', whereArgs: [widget.expense.id]);
                     await widget.database.rawQuery("drop table table" + widget.expense.id.toString());
                     Navigator.of(context).pop(true);
@@ -90,10 +96,11 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
               icon: Icon(Icons.delete)
           ),
           IconButton(
+            //save button
             onPressed: (){
-              print("Save Expense");
               widget.expense = costListView.getExpenseObect();
-              Navigator.of(context).pop(false);
+              saveExpense();
+              Navigator.of(context).pop(backRefresh);
             },
             icon: Icon(Icons.done)
           ),
@@ -101,5 +108,14 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
       ),
       body: costListView,
     );
+  }
+
+  Future<void> saveExpense() async{
+    await widget.database.rawQuery("delete from " + widget.expense.tableName);
+    for(Map m in widget.expense.costList){
+      await widget.database.insert(widget.expense.tableName, m);
+      //await widget.database.rawQuery("insert or replace into " + widget.expense.tableName + "(id, title, amount, ignore) values(\'" + m['id'].toString() + "\',\'" + m['title'] + "\',\'" + m['amount'].toString() + "\',\'" + m['ignore'].toString() + "\')");
+    }
+    print("Db updte complete");
   }
 }

@@ -72,7 +72,7 @@ class NewExpenseDialog extends StatelessWidget{
               print("New Expense: ");
               newExpense.show();
 
-              String query = "create table " + tablename + " (id integer primary key autoincrement, title text, cost integer, ignore integer, date text)";
+              String query = "create table " + tablename + " (id integer primary key autoincrement, title text, amount integer, ignore integer)";
               await database.execute(query);
               
               List<Map> result = await database.rawQuery("Select name from sqlite_master where type='table'");
