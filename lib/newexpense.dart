@@ -52,26 +52,22 @@ class NewExpenseDialog extends StatelessWidget{
           onPressed: () async {
             print("Save");
             if(_formKey.currentState.validate()){
-              print("Correct");
               DateTime now = DateTime.now();
               String date = now.day.toString() + "/" + now.month.toString() + "/" + now.year.toString();
-              print("Dte: " + date);
-              String title = titlecontroller.text;
-              print("Titel: " + title);
+              String title = titlecontroller.text;;
               int tableno = await Sqflite.firstIntValue(await database.rawQuery("Select max(id) from expensemain"));
               if(tableno == null)
                 tableno = 0;
               tableno++;
               print(tableno);
-              String tablename = "table" + tableno.toString();
-              print("Tablename: " + tablename);
 
-              var newExpense = ExpenseMain(title, tablename, date.toString());
+              String tempTable = "t";
+              var newExpense = ExpenseMain(title, tempTable, date.toString());
 
               newExpense.id = await database.insert('expensemain', newExpense.toMap());
-              print("New Expense: ");
-              newExpense.show();
-
+              String tablename = "table" + newExpense.id.toString();
+              newExpense.tableName = tablename;
+              await database.update('expensemain', newExpense.toMap(), where: 'id = ?', whereArgs: [newExpense.id]);
               String query = "create table " + tablename + " (id integer primary key autoincrement, title text, amount integer, ignore integer)";
               await database.execute(query);
               
@@ -84,9 +80,10 @@ class NewExpenseDialog extends StatelessWidget{
               for(Map m in result){
                 print(m.toString());
               }
-              Navigator.of(context).pop(true);
-             // Navigator.pushNamed(context, ExpenseMain());
-             Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) => new ExpenseDetail(expense: newExpense, database: database,)));
+              print("Sending exp");
+              Navigator.of(context).pop(newExpense);
+              //Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) => new ExpenseDetail(expense: newExpense, database: database,)));
+
             }else{
               print("Incorredt");
             }
@@ -98,7 +95,7 @@ class NewExpenseDialog extends StatelessWidget{
           onPressed: (){
             print("Discard");
             _formKey.currentState.reset();
-            Navigator.of(context).pop(false);
+            Navigator.of(context).pop(null);
           },
           child: Text("Discard")
         )

@@ -2,12 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class NewCost extends StatelessWidget{
+  Map<String, dynamic> cost;
+  NewCost({Key key, this.cost}):super(key: key);
+  bool newCost = false;
+
   var _formKey = GlobalKey<FormState>();
-  TextEditingController costNameController = TextEditingController();
-  TextEditingController costAmountController = TextEditingController();
-  Map<String, dynamic> cost = Map<String, dynamic>();
+
   @override
   Widget build(BuildContext context) {
+    if(cost == null){
+      cost = Map<String, dynamic>();
+      cost['title'] = '';
+      cost['amount'] = 0;
+      cost['ignore'] = 0;
+      newCost = true;
+    }
+    TextEditingController costNameController = TextEditingController(text: cost['title']);
+    TextEditingController costAmountController = TextEditingController(text: cost['amount'].toString());
     return AlertDialog(
       title: Text("New Cost"),
       actions: [
@@ -18,7 +29,7 @@ class NewCost extends StatelessWidget{
             if(_formKey.currentState.validate()){
               print("Saving");
               cost['title'] = costNameController.text;
-              cost['amount'] = costAmountController.text;
+              cost['amount'] = int.parse(costAmountController.text.toString());
               cost['ignore'] = 0;
               print("New Cost: " + cost.toString());
               Navigator.of(context).pop(cost);
@@ -70,6 +81,7 @@ class NewCost extends StatelessWidget{
                         validator: (value){
                           if(value.isEmpty)
                             return "Enter Amount";
+
                           return null;
                         },
                       ),

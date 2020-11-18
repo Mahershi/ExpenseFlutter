@@ -22,10 +22,7 @@ void main() async{
   );
 
   ExpenseMain.count = Sqflite.firstIntValue(await database.rawQuery("Select count(*) from expensemain"));
-  List<Map> result = await database.rawQuery("Select * from table1");
-  for(Map m in result){
-    print(m.toString());
-  }
+
   runApp(MyApp());
 }
 
@@ -113,20 +110,22 @@ class _myHomePageState extends State<HomePage>{
         tooltip: "New Expense",
         child: Icon(Icons.add),
         onPressed: () async{
-          print("Add new");
           showDialog(context: context, builder: (BuildContext buildContext){
             return NewExpenseDialog(database: database,);
           }).then((value){
-            /*if(value){
-              print("Refreshing");
+
+            if(value != null){
               setState(() {
                 loaded = false;
               });
-            }*/
-            if(value){
-             // Navigator.pushNamed(context, "expensedetail", )
+              print("New EXP SHOW: ");
+              value.show();
+              Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) => new ExpenseDetail(expense: value, database: database,))).then((value){
+                print("Back: " + value.toString());
+              });
+            }else{
+              print("Not");
             }
-
           });
         },
       ),
@@ -145,13 +144,7 @@ class _myHomePageState extends State<HomePage>{
     ExpenseMain temp;
     for(Map m in expenseList){
       temp = ExpenseMain.fromMap(m);
-      List<Map> costs = await database.rawQuery("Select * from " + temp.tableName);
-      for(int i=0 ;i<costs.length; i++){
-        temp.costList.add(temp.copyCosts(costs[i]));
-      }
-      temp.costList[0]['amount'] = 900;
       expenses.add(temp);
-      print(temp.toString());
       expenseTileList.add(listToTile(temp));
     }
 
@@ -170,6 +163,7 @@ class _myHomePageState extends State<HomePage>{
                   builder: (BuildContext buildContext) => new ExpenseDetail(expense: expense, database: database,)
               )
           ).then((value){
+            print("Back: " + value.toString());
             if(value){
               setState(() {
                 loaded = false;
