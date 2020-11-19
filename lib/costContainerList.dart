@@ -38,7 +38,7 @@ class _myCostListViewState extends State<CostListView>{
           )
         ),
         Container(
-          color: Colors.lightBlueAccent,
+          color: Colors.pinkAccent,
           padding: EdgeInsets.fromLTRB(10, 10, 0, 10),
           child: Row(
             children: [
@@ -48,7 +48,8 @@ class _myCostListViewState extends State<CostListView>{
                     "Total",
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white
                     ),
                   ),
                 ),
@@ -59,7 +60,8 @@ class _myCostListViewState extends State<CostListView>{
                   widget.total.toString(),
                   style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white
                   ),
                 )
               )
@@ -79,48 +81,50 @@ class _myCostListViewState extends State<CostListView>{
     for(int i=0; i<widget.expense.costList.length; i++){
       Map current = widget.expense.costList[i];
       if(current['ignore'] == 1){
-        igIcon = Icon(Icons.add, color: Colors.grey,);
+        igIcon = Icon(Icons.add, color: Colors.white38,);
         amount = Text(
           current['amount'].toString(),
           style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey
+            fontSize: 16,
+            color: Colors.white38,
+            fontWeight: FontWeight.normal
           ),
         );
         title = Text(
           current['title'],
           style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey
+              fontSize: 16,
+              color: Colors.white38,
           ),
         );
       }else{
-        igIcon = Icon(Icons.add_circle_outline, color: Colors.green,);
+        igIcon = Icon(Icons.add_circle_outline, color: Colors.pinkAccent,);
         amount = Text(
           current['amount'].toString(),
           style: TextStyle(
-            fontSize: 18,
-            color: Colors.black,
+            fontSize: 17,
+            color: Colors.white,
             fontWeight: FontWeight.bold
           ),
         );
         title = Text(
           current['title'],
           style: TextStyle(
-              fontSize: 18,
-              color: Colors.black,
+              fontSize: 16,
+              color: Colors.white,
               fontWeight: FontWeight.bold
           ),
         );
       }
       container = Container(
         padding: EdgeInsets.fromLTRB(0, 10, 0, 5),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey, width: 0.5))),
+        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.pinkAccent, width: 0.5))),
         child: Row(
           children: [
             Container(
               child: IconButton(
-                icon: Icon(Icons.delete),
+                icon: Icon(Icons.delete, color: Colors.white),
+                iconSize: 17,
                 onPressed: ()async{
                   print("Delete Cost");
                   widget.expense.costList.removeAt(i);
@@ -143,6 +147,7 @@ class _myCostListViewState extends State<CostListView>{
             Container(
                 child: IconButton(
                   icon: igIcon,
+                  iconSize: 17,
                   onPressed: (){
                     widget.expense.costList[i]['ignore'] = 1 - widget.expense.costList[i]['ignore'];
                     print("New Ignore: " + widget.expense.costList[i]['ignore'].toString());
@@ -155,7 +160,8 @@ class _myCostListViewState extends State<CostListView>{
             ),
             Container(
               child: IconButton(
-                icon: Icon(Icons.edit),
+                icon: Icon(Icons.edit, color: Colors.white),
+                iconSize: 17,
                 onPressed: () async{
                   Map<String, dynamic> newCost = await showDialog(
                       context: context,

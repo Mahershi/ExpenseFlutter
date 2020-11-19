@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+String capitalize(String input) => input[0].toUpperCase() + input.substring(1);
+
 class NewCost extends StatelessWidget{
   Map<String, dynamic> cost;
   NewCost({Key key, this.cost}):super(key: key);
@@ -19,16 +21,29 @@ class NewCost extends StatelessWidget{
     }
     TextEditingController costNameController = TextEditingController(text: cost['title']);
     TextEditingController costAmountController = TextEditingController(text: cost['amount'].toString());
+
+    FocusNode _focusNodeAmount = FocusNode();
+    _focusNodeAmount.addListener(() {
+      if(_focusNodeAmount.hasFocus){
+        costAmountController.clear();
+      }
+    });
+
+    FocusNode _focusNodeTitle = FocusNode();
+    _focusNodeTitle.addListener(() {
+      if(_focusNodeTitle.hasFocus)
+        costNameController.clear();
+    });
     return AlertDialog(
       title: Text("New Cost"),
       actions: [
         FlatButton(
-          child: Text("Add"),
+          child: Text("Save"),
           onPressed: (){
             print("Add cost button");
             if(_formKey.currentState.validate()){
               print("Saving");
-              cost['title'] = costNameController.text;
+              cost['title'] = capitalize(costNameController.text);
               cost['amount'] = int.parse(costAmountController.text.toString());
               cost['ignore'] = 0;
               print("New Cost: " + cost.toString());
@@ -55,9 +70,15 @@ class NewCost extends StatelessWidget{
                   children: [
                     Container(
                       child: TextFormField(
+                        focusNode: _focusNodeTitle,
                         controller: costNameController,
                         decoration: InputDecoration(
                           hintText: "Cost Title",
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.pinkAccent
+                            )
+                          )
                         ),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]+")),
@@ -71,9 +92,15 @@ class NewCost extends StatelessWidget{
                     ),
                     Container(
                       child: TextFormField(
+                        focusNode: _focusNodeAmount,
                         controller: costAmountController,
                         decoration: InputDecoration(
                           hintText: "Amount",
+                            focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.pinkAccent
+                                )
+                            )
                         ),
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,

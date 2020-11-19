@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 
+String capitalize(String input) => input[0].toUpperCase() + input.substring(1);
+
 class NewExpenseDialog extends StatelessWidget{
   Database database;
   TextEditingController titlecontroller = TextEditingController();
@@ -13,7 +15,7 @@ class NewExpenseDialog extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("New Expense"),
+      title: Text("New Expense",),
       content: Builder(builder: (context){
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -25,9 +27,16 @@ class NewExpenseDialog extends StatelessWidget{
                     children: [
                       Container(
                         child: TextFormField(
+                          textCapitalization: TextCapitalization.sentences,
+                          autofocus: true,
                           controller: titlecontroller,
                           decoration: InputDecoration(
-                              hintText: "Expense Title"
+                              hintText: "Expense Title",
+                              focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.pinkAccent
+                                  )
+                              )
                           ),
                           inputFormatters: [
                             FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]+"))
@@ -54,7 +63,7 @@ class NewExpenseDialog extends StatelessWidget{
             if(_formKey.currentState.validate()){
               DateTime now = DateTime.now();
               String date = now.day.toString() + "/" + now.month.toString() + "/" + now.year.toString();
-              String title = titlecontroller.text;;
+              String title = capitalize(titlecontroller.text);
               int tableno = await Sqflite.firstIntValue(await database.rawQuery("Select max(id) from expensemain"));
               if(tableno == null)
                 tableno = 0;

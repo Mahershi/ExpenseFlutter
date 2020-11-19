@@ -27,7 +27,7 @@ void main() async{
 }
 
 class MyApp extends StatelessWidget{
-  final String title = "Expense";
+  final String title = "My Expenses";
   @override
   Widget build(BuildContext buildContext){
     return MaterialApp(
@@ -52,16 +52,43 @@ class _myHomePageState extends State<HomePage>{
   List<Container> expenseTileList = [];
   List<ExpenseMain> expenses = [];
 
-  Widget refresh, mainBody, progressWidget;
+  Widget refresh, mainBody, progressWidget, addNew;
   bool loaded = false;
   @override
   Widget build(BuildContext context) {
     this.context = context;
     print("Building");
     progressWidget = Container();
-    mainBody = Container(
-        child: Text("Empty"),
-      alignment: Alignment.center,
+    mainBody = Center(
+      child: Container(
+          padding: EdgeInsets.all(10),
+          decoration: BoxDecoration(border: Border.all(color: Colors.white), borderRadius: BorderRadius.circular(10)),
+          child: FlatButton(
+              child: Text(
+                  "+ Add Expense",
+                  style: TextStyle(color: Colors.blueGrey)
+              ),
+              onPressed: () async {
+                showDialog(context: context, builder: (BuildContext buildContext){
+                  return NewExpenseDialog(database: database,);
+                }).then((value){
+
+                  if(value != null){
+                    setState(() {
+                      loaded = false;
+                    });
+                    print("New EXP SHOW: ");
+                    value.show();
+                    Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) => new ExpenseDetail(expense: value, database: database,))).then((value){
+                      print("Back: " + value.toString());
+                    });
+                  }else{
+                    print("Not");
+                  }
+                });
+              }
+          )
+      )
     );
     refresh = IconButton(
         icon: Icon(Icons.refresh),
@@ -71,6 +98,8 @@ class _myHomePageState extends State<HomePage>{
           });
         },
     );
+    addNew = Container();
+
     if(!loaded){
       refreshList().then((value) {
         setState((){
@@ -79,56 +108,92 @@ class _myHomePageState extends State<HomePage>{
       });
     }
     if(expenseList.isNotEmpty){
-      mainBody = ListView.builder(
-        padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
-        itemBuilder: (BuildContext buildContext, int index){
-          return expenseTileList[index];
-        },
-        shrinkWrap: true,
-        itemCount: expenseTileList.length,
-        physics: NeverScrollableScrollPhysics(),
+      print("list not empty");
+      //mainBody = ;
+      addNew = IconButton(
+          icon: Icon(Icons.create_outlined),
+          onPressed: () async {
+            showDialog(context: context, builder: (BuildContext buildContext){
+              return NewExpenseDialog(database: database,);
+            }).then((value){
+
+              if(value != null){
+                setState(() {
+                  loaded = false;
+                });
+                print("New EXP SHOW: ");
+                value.show();
+                Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) => new ExpenseDetail(expense: value, database: database,))).then((value){
+                  print("Back: " + value.toString());
+                });
+              }else{
+                print("Not");
+              }
+            });
+          }
+      );
+
+      mainBody = SingleChildScrollView(
+        physics: ScrollPhysics(),
+        child: ListView.builder(
+          padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+          itemBuilder: (BuildContext buildContext, int index){
+            return expenseTileList[index];
+          },
+          shrinkWrap: true,
+          itemCount: expenseTileList.length,
+          physics: NeverScrollableScrollPhysics(),
+        )
       );
    }
 
     return Scaffold(
+      backgroundColor: Colors.black87,
       appBar: AppBar(
-        title: Text(widget.title),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.black87,
+        centerTitle: true,
+        title: Container(
+            //alignment: Alignment.center,
+           // decoration: BoxDecoration(border: Border.all(color: Colors.white)),
+            child: Column(
+              children: [
+                Container(
+                    padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                    child: Text(
+                      widget.title,
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white
+                      ),
+                    )
+                ),
+                Container(
+                    padding: EdgeInsets.fromLTRB(0, 7, 0, 5),
+                    child: Text(
+                      ExpenseMain.count.toString() + " items",
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white70
+                      ),
+                    )
+                )
+              ],
+            )
+        ),
         actions: [
-          refresh
+          //refresh
+          addNew
         ],
       ),
-      body: SingleChildScrollView(
-        physics: ScrollPhysics(),
-        child: Column(
-          children: [
-            progressWidget,
-            mainBody
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
+      body: mainBody
+      /*floatingActionButton: FloatingActionButton(
         tooltip: "New Expense",
         child: Icon(Icons.add),
         onPressed: () async{
-          showDialog(context: context, builder: (BuildContext buildContext){
-            return NewExpenseDialog(database: database,);
-          }).then((value){
 
-            if(value != null){
-              setState(() {
-                loaded = false;
-              });
-              print("New EXP SHOW: ");
-              value.show();
-              Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) => new ExpenseDetail(expense: value, database: database,))).then((value){
-                print("Back: " + value.toString());
-              });
-            }else{
-              print("Not");
-            }
-          });
         },
-      ),
+      ),*/
     );
   }
 
@@ -148,11 +213,13 @@ class _myHomePageState extends State<HomePage>{
       expenseTileList.add(listToTile(temp));
     }
 
+   // await Future.delayed(Duration(seconds: 2));
+
   }
 
   Container listToTile(ExpenseMain expense){
     Container container = Container(
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey, width: 0.5))),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.pinkAccent, width: 0.5))),
       padding: EdgeInsets.fromLTRB(9, 14, 5, 5),
       child: InkWell(
         onTap: (){
@@ -185,23 +252,24 @@ class _myHomePageState extends State<HomePage>{
                           softWrap: false,
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 20
+                              fontSize: 20,
+                            color: Colors.white
                           ),
                         ),
                       ),
                       Container(
                         alignment: Alignment.bottomLeft,
                         padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
-                        child: Text(expense.date, style: TextStyle(fontSize: 11),),
+                        child: Text(expense.date, style: TextStyle(fontSize: 11, color: Colors.white70),),
                       ),
                     ]
                 )
               )
             ),
             Container(
-              decoration: BoxDecoration(border: Border.all(color: Colors.grey, width: 0.5)),
+              //decoration: BoxDecoration(border: Border.all(color: Colors.grey, width: 0.5)),
               child: IconButton(
-                icon: Icon(Icons.delete),
+                icon: Icon(Icons.delete, color: Colors.white),
                 onPressed: () async{
                   print("Pressed Delete");
                   showDialog(context: context, builder: (BuildContext buildContext){

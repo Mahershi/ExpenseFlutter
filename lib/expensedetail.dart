@@ -59,7 +59,9 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
+        backgroundColor: Colors.black87,
         appBar: AppBar(
+          backgroundColor: Colors.black87,
           automaticallyImplyLeading: false,
           title: Container(
               child: Column(
@@ -70,7 +72,7 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
                     padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
                   ),
                   Container(
-                    child: Text(widget.expense.date, style: TextStyle(fontSize: 10),),
+                    child: Text(widget.expense.date, style: TextStyle(fontSize: 10, color: Colors.white70),),
                     padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
                   )
                 ],
@@ -94,7 +96,7 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
                   }
                 });
               },
-              icon: Icon(Icons.edit),
+              icon: Icon(Icons.edit, color: Colors.white),
             ),
             IconButton(
                 onPressed: (){
@@ -112,7 +114,7 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
                     }
                   });
                 },
-                icon: Icon(Icons.delete)
+                icon: Icon(Icons.delete, color: Colors.white)
             ),
             IconButton(
               //save button
@@ -126,13 +128,6 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
                   );
                   if(newCost != null){
                     print("Cost recv on Prev: " + newCost.toString());
-                    /*int currentMax;
-                    if(widget.expense.costList.isEmpty)
-                      currentMax = 0;
-                    else
-                      currentMax = widget.expense.costList[0]['id'];
-                    */
-                    //newCost['id'] = currentMax+1;
                     newCost['id'] = await widget.database.insert(widget.expense.tableName, newCost);
                     print("New Cost: " + newCost.toString());
                     widget.expense.costList.insert(0, newCost);
@@ -144,7 +139,7 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
                     print("Null");
                   }
                 },
-                icon: Icon(Icons.add)
+                icon: Icon(Icons.add, color: Colors.white)
             ),
           ],
         ),
