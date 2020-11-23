@@ -23,8 +23,7 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
   Widget body;
 
   Future<bool> _onWillPop() async{
-    Navigator.of(context).pop(backRefresh);
-    return false;
+    Navigator.of(context).pop(null);
   }
 
   Future<void> readCosts() async{
@@ -90,7 +89,7 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
                   if(value['title']!=null){
                     widget.expense.title = value['title'];
                     await widget.database.update('expensemain', widget.expense.toMap(), where: 'id = ?', whereArgs: [widget.expense.id]);
-                    backRefresh = true;
+                    //backRefresh = true;
                     setState(() {
                     });
                   }
@@ -110,7 +109,7 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
                       print("delete true");
                       await widget.database.delete('expensemain', where: 'id = ?', whereArgs: [widget.expense.id]);
                       await widget.database.rawQuery("drop table table" + widget.expense.id.toString());
-                      Navigator.of(context).pop(true);
+                      Navigator.of(context).pop(widget.expense);
                     }
                   });
                 },
@@ -148,12 +147,4 @@ class _myExpenseDetailState extends State<ExpenseDetail>{
     );
   }
 
-  /*Future<void> saveExpense() async{
-    await widget.database.rawQuery("delete from " + widget.expense.tableName);
-    for(Map m in widget.expense.costList){
-      await widget.database.insert(widget.expense.tableName, m);
-      //await widget.database.rawQuery("insert or replace into " + widget.expense.tableName + "(id, title, amount, ignore) values(\'" + m['id'].toString() + "\',\'" + m['title'] + "\',\'" + m['amount'].toString() + "\',\'" + m['ignore'].toString() + "\')");
-    }
-    print("Db updte complete");
-  }*/
 }

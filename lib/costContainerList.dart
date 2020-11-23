@@ -17,6 +17,7 @@ class CostListView extends StatefulWidget{
 
 class _myCostListViewState extends State<CostListView>{
   bool green = false;
+  Widget mainBody;
   @override
   Widget build(BuildContext context) {
     print("Building cost list");
@@ -26,16 +27,53 @@ class _myCostListViewState extends State<CostListView>{
       }
     }
 
+    if(widget.expense.costList.isEmpty){
+      mainBody = Center(
+        child: Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(border: Border.all(color: Colors.blueGrey), borderRadius: BorderRadius.circular(10)),
+            child: FlatButton(
+                child: Text(
+                    "+ Add A Cost",
+                    style: TextStyle(color: Colors.white)
+                ),
+                onPressed: () async {
+                  print("Add new cost");
+                  Map<String, dynamic> newCost = await showDialog(
+                      context: context,
+                      builder: (BuildContext buildContext){
+                        return NewCost();
+                      }
+                  );
+                  if(newCost != null){
+                    print("Cost recv on Prev: " + newCost.toString());
+                    newCost['id'] = await widget.database.insert(widget.expense.tableName, newCost);
+                    print("New Cost: " + newCost.toString());
+                    widget.expense.costList.insert(0, newCost);
+                    widget.expense.show();
+                    setState(() {
+                      print("New Added, setting state");
+                    });
+                  }else{
+                    print("Null");
+                  }
+                }
+            )
+        )
+      );
+    }else{
+      mainBody = ListView.builder(
+        itemBuilder: (BuildContext buildContext, int index){
+          return getCostItemsContainerList()[index];
+        },
+        itemCount: widget.expense.costList.length,
+        shrinkWrap: true,
+      );
+    }
     return Column(
       children: [
         Expanded(
-          child: ListView.builder(
-            itemBuilder: (BuildContext buildContext, int index){
-              return getCostItemsContainerList()[index];
-            },
-            itemCount: widget.expense.costList.length,
-            shrinkWrap: true,
-          )
+          child: mainBody
         ),
         Container(
           color: Colors.pinkAccent,
